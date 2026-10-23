@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SafeZone Simulator</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #0F1B33; color: #F8FAFC; padding: 20px;
+        }
+        h1 { color: #2DD4BF; margin-bottom: 5px; }
+        .subtitle { color: #64748B; margin-bottom: 20px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; }
+        .card {
+            background: #1B2A4A; border-radius: 12px; padding: 20px;
+            border: 1px solid #2a3a5a;
+        }
+        .card h3 { color: #2DD4BF; margin-bottom: 12px; font-size: 14px; text-transform: uppercase; letter-spacing: 1px; }
+        button {
+            padding: 12px 20px; border: none; border-radius: 8px;
+            font-size: 14px; font-weight: 600; cursor: pointer;
+            transition: all 0.2s; width: 100%; margin-bottom: 8px;
+        }
+        .btn-teal { background: #2DD4BF; color: #0F1B33; }
+        .btn-teal:hover { background: #14b8a6; }
+        .btn-coral { background: #FF6B6B; color: white; }
+        .btn-coral:hover { background: #ef4444; }
+        .btn-amber { background: #FBBF24; color: #0F1B33; }
+        .btn-amber:hover { background: #f59e0b; }
+        .btn-navy { background: #2a3a5a; color: #F8FAFC; }
+        .btn-navy:hover { background: #374a6a; }
+        select, input {
+            width: 100%; padding: 10px; border-radius: 8px;
+            border: 1px solid #2a3a5a; background: #0F1B33;
+            color: #F8FAFC; margin-bottom: 8px; font-size: 14px;
+        }
+        .log {
+            background: #0F1B33; border-radius: 8px; padding: 12px;
+            max-height: 300px; overflow-y: auto; font-family: monospace;
+            font-size: 12px; line-height: 1.6;
+        }
+        .log-entry { padding: 2px 0; border-bottom: 1px solid #1B2A4A; }
+        .log-success { color: #34D399; }
+        .log-error { color: #FF6B6B; }
+        .log-info { color: #60A5FA; }
+        .log-warn { color: #FBBF24; }
+        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .stat { background: #0F1B33; padding: 12px; border-radius: 8px; text-align: center; }
+        .stat-value { font-size: 24px; font-weight: 700; color: #2DD4BF; }
+        .stat-label { font-size: 11px; color: #64748B; text-transform: uppercase; }
+        .zone-bar { margin: 4px 0; }
+        .zone-bar-inner { 
+            height: 24px; border-radius: 4px; display: flex; 
+            align-items: center; padding: 0 8px; font-size: 12px;
+            transition: width 0.5s;
+        }
+        .progress { margin-top: 12px; }
+        .progress-bar { width: 100%; height: 4px; background: #2a3a5a; border-radius: 2px; overflow: hidden; }
+        .progress-fill { height: 100%; background: #2DD4BF; transition: width 0.3s; }
+        .status-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; }
+        .status-connected { background: #34D399; }
+        .status-disconnected { background: #FF6B6B; }
+    </style>
+</head>
+<body>
+    <h1>🛡️ SafeZone Simulator</h1>
+    <p class="subtitle">
+        <span class="status-dot" id="statusDot"></span>
+        <span id="statusText">Connecting...</span>
+        | Event: <span id="eventName">-</span>
+    </p>
+
+    <div class="grid">
+        <!-- Attendee Spawning -->
+        <div class="card">
+            <h3>👥 Attendees</h3>
+            <input type="number" id="spawnCount" value="300" min="1" max="1000" placeholder="Number to spawn">
+            <button class="btn-teal" onclick="spawnAttendees()">Spawn Attendees</button>
+            <button class="btn-navy" onclick="moveAttendees()">Shuffle Zones (30s)</button>
+            <div class="stats-grid" style="margin-top: 12px;">
+                <div class="stat">
+                    <div class="stat-value" id="totalAttendees">0</div>
+                    <div class="stat-label">Total</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value" id="activeAttendees">0</div>
+                    <div class="stat-label">Active</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Crowd Surge -->
+        <div class="card">
+            <h3>🌊 Crowd Surge</h3>
+            <select id="surgeZone"></select>
+            <button class="btn-amber" onclick="triggerSurge()">Trigger Crowd Surge</button>
+            <button class="btn-navy" onclick="resetZoneCounts()">Reset Zone Counts</button>
+            <div id="zoneBars" style="margin-top: 12px;"></div>
+        </div>
+
+        <!-- SOS Test -->
+        <div class="card">
+            <h3>🆘 Test SOS</h3>
+            <select id="sosZone"></select>
+            <button class="btn-coral" onclick="triggerSOS()">Fire Test SOS</button>
+            <button class="btn-navy" onclick="triggerHelpPoint()">Fire Help Point Alert</button>
+            <div class="stats-grid" style="margin-top: 12px;">
+                <div class="stat">
+                    <div class="stat-value" id="activeAlerts">0</div>
+                    <div class="stat-label">Active Alerts</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value" id="avgResponse">-</div>
+                    <div class="stat-label">Avg Response</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Auto Demo -->
+        <div class="card">
+            <h3>🎬 Auto Demo</h3>
+            <button class="btn-teal" onclick="runAutoDemo()">Run Full Demo Sequence</button>
+            <button class="btn-navy" onclick="stopAutoDemo()">Stop Demo</button>
+            <div class="progress" id="demoProgress" style="display:none;">
+                <div style="font-size: 12px; margin-bottom: 4px;" id="demoStep">-</div>
+                <div class="progress-bar"><div class="progress-fill" id="demoFill"></div></div>
+            </div>
+        </div>
+
+        <!-- Log -->
+        <div class="card" style="grid-column: 1 / -1;">
+            <h3>📋 Activity Log</h3>
+            <button class="btn-navy" onclick="clearLog()" style="width:auto; margin-bottom: 12px;">Clear</button>
+            <div class="log" id="log"></div>
+        </div>
+    </div>
+
+    <script>
+        const API = '/api';
+        let eventId = null;
+        let zones = [];
+        let attendees = [];
+        let demoRunning = false;
+
+        // Initialize
+        async function init() {
+            try {
+                const events = await fetchJSON(`${API}/events`);
+                if (!events || events.length === 0) {
+                    setStatus(false, 'No events found');
+                    return;
+                }
+                const event = events.find(e => e.name?.includes('Dexathon')) || events[0];
+                eventId = event.id;
+                document.getElementById('eventName').textContent = event.name;
+
+                zones = await fetchJSON(`${API}/events/${eventId}/zones`);
+                
+                // Populate zone selectors
+                const selectors = ['surgeZone', 'sosZone'];
+                selectors.forEach(id => {
+                    const sel = document.getElementById(id);
+                    sel.innerHTML = zones.map(z => 
+                        `<option value="${z.id}">${z.name} (${z.current_count || 0}/${z.capacity})</option>`
+                    ).join('');
+                });
+
+                updateZoneBars();
+                setStatus(true, 'Connected');
+                log('info', `Connected to event: ${event.name}`);
+                
+                // Auto-refresh stats every 3 seconds
+                setInterval(refreshStats, 3000);
+            } catch (err) {
+                setStatus(false, 'Connection failed');
+                log('error', `Failed to connect: ${err.message}`);
+            }
+        }
+
+        async function fetchJSON(url, options = {}) {
+            const resp = await fetch(url, {
+                headers: { 'Content-Type': 'application/json' },
+                ...options,
+            });
+            if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+            return resp.json();
+        }
+
+        function setStatus(connected, text) {
+            document.getElementById('statusDot').className = 
+                `status-dot ${connected ? 'status-connected' : 'status-disconnected'}`;
+            document.getElementById('statusText').textContent = text;
+        }
+
+        function log(type, msg) {
+            const el = document.getElementById('log');
+            const entry = document.createElement('div');
+            entry.className = `log-entry log-${type}`;
+            entry.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
+            el.insertBefore(entry, el.firstChild);
+        }
+
+        function clearLog() {
+            document.getElementById('log').innerHTML = '';
+        }
+
+        function updateZoneBars() {
+            const container = document.getElementById('zoneBars');
+            container.innerHTML = zones.map(z => {
+                const pct = z.capacity > 0 ? Math.round((z.current_count || 0) / z.capacity * 100) : 0;
+                const color = pct > 85 ? '#FF6B6B' : pct > 60 ? '#FBBF24' : '#34D399';
+                return `<div class="zone-bar">
+                    <div style="font-size:11px;color:#94a3b8;margin-bottom:2px;">${z.name} (${z.current_count||0}/${z.capacity})</div>
+                    <div class="zone-bar-inner" style="width:${Math.max(pct,5)}%;background:${color}20;border:1px solid ${color};">${pct}%</div>
+                </div>`;
+            }).join('');
+        }
+
+        async function refreshStats() {
+            try {
+                zones = await fetchJSON(`${API}/events/${eventId}/zones`);
+                updateZoneBars();
+                
+                // Update selectors
+                ['surgeZone', 'sosZone'].forEach(id => {
+                    const sel = document.getElementById(id);
+                    const current = sel.value;
+                    sel.innerHTML = zones.map(z => 
+                        `<option value="${z.id}" ${z.id === current ? 'selected' : ''}>${z.name} (${z.current_count || 0}/${z.capacity})</option>`
+                    ).join('');
+                });
+
+                const dashboard = await fetchJSON(`${API}/events/${eventId}/dashboard`);
+                document.getElementById('activeAttendees').textContent = dashboard.active_attendees || 0;
+                document.getElementById('totalAttendees').textContent = attendees.length;
+                document.getElementById('activeAlerts').textContent = dashboard.active_alerts || 0;
+                const avgResp = dashboard.avg_response_time;
+                document.getElementById('avgResponse').textContent = avgResp != null ? `${avgResp}s` : '-';
+            } catch (err) {
+                // Silent fail for periodic refresh
+            }
+        }
+
+        async function spawnAttendees() {
+            const count = parseInt(document.getElementById('spawnCount').value) || 300;
+            log('info', `Spawning ${count} attendees...`);
+            
+            let success = 0;
+            const batchSize = 50;
+            
+            for (let i = 0; i < count; i += batchSize) {
+                const batch = Math.min(batchSize, count - i);
+                const promises = [];
+                
+                for (let j = 0; j < batch; j++) {
+                    const zone = zones[Math.floor(Math.random() * zones.length)];
+                    promises.push(
+                        fetchJSON(`${API}/events/${eventId}/checkin`, {
+                            method: 'POST',
+                            body: JSON.stringify({ zone: zone.name })
+                        }).then(result => {
+                            attendees.push({
+                                token: result.session_token || result.token,
+                                id: result.id || result.session_id,
+                                zone_id: zone.id,
+                                zone_name: zone.name,
+                            });
+                            success++;
+                        }).catch(() => {})
+                    );
+                }
+                
+                await Promise.allSettled(promises);
+                log('success', `Batch ${Math.floor(i/batchSize)+1}: ${success} checked in`);
+            }
+            
+            log('success', `✅ Spawned ${success} attendees`);
+            await refreshStats();
+        }
+
+        async function moveAttendees() {
+            log('info', 'Shuffling attendees between zones (30s)...');
+            const duration = 30000;
+            const start = Date.now();
+            
+            while (Date.now() - start < duration && !demoRunning) {
+                const movers = attendees
+                    .sort(() => Math.random() - 0.5)
+                    .slice(0, Math.max(1, Math.floor(attendees.length * 0.1)));
+                
+                const promises = movers.map(att => {
+                    const newZone = zones[Math.floor(Math.random() * zones.length)];
+                    return fetchJSON(`${API}/attendees/${att.id}/zone`, {
+                        method: 'POST',
+                        body: JSON.stringify({ zone_id: newZone.id })
+                    }).then(() => {
+                        att.zone_id = newZone.id;
+                        att.zone_name = newZone.name;
+                    }).catch(() => {});
+                });
+                
+                await Promise.allSettled(promises);
+                await new Promise(r => setTimeout(r, 2000));
+            }
+            
+            log('success', '✅ Shuffle complete');
+            await refreshStats();
+        }
+
+        async function triggerSurge() {
+            const zoneId = document.getElementById('surgeZone').value;
+            const zone = zones.find(z => z.id === zoneId);
+            if (!zone) return;
+            
+            log('warn', `🌊 Triggering crowd surge in ${zone.name}...`);
+            
+            const target = Math.floor(zone.capacity * 0.95);
+            const inZone = attendees.filter(a => a.zone_id === zoneId).length;
+            const needed = Math.max(0, target - inZone);
+            
+            const others = attendees.filter(a => a.zone_id !== zoneId);
+            const movers = others.slice(0, Math.min(needed, others.length));
+            
+            const promises = movers.map(att => 
+                fetchJSON(`${API}/attendees/${att.id}/zone`, {
+                    method: 'POST',
+                    body: JSON.stringify({ zone_id: zoneId })
+                }).then(() => {
+                    att.zone_id = zoneId;
+                    att.zone_name = zone.name;
+                }).catch(() => {})
+            );
+            
+            await Promise.allSettled(promises);
+            log('warn', `🌊 Moved ${movers.length} attendees to ${zone.name}`);
+            await refreshStats();
+        }
+
+        async function triggerSOS() {
+            const zoneId = document.getElementById('sosZone').value;
+            const zone = zones.find(z => z.id === zoneId);
+            const att = attendees.find(a => a.zone_id === zoneId);
+            
+            if (!att) {
+                log('error', `No attendees in ${zone?.name || 'selected zone'}`);
+                return;
+            }
+            
+            log('warn', `🆘 Firing SOS from ${zone.name}...`);
+            
+            try {
+                const alert = await fetchJSON(`${API}/alerts`, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        session_token: att.token,
+                        event_id: eventId,
+                        zone_id: zoneId,
+                        alert_type: 'sos',
+                    })
+                });
+                
+                log('success', `✅ Alert created: ${alert.id || 'OK'}`);
+                if (alert.guard_name || alert.guard?.name) {
+                    log('info', `🛡️ Assigned to: ${alert.guard_name || alert.guard?.name}`);
+                }
+            } catch (err) {
+                log('error', `Failed: ${err.message}`);
+            }
+            
+            await refreshStats();
+        }
+
+        async function triggerHelpPoint() {
+            const restroom = zones.find(z => z.help_point || z.zone_type === 'restroom');
+            if (!restroom) {
+                log('error', 'No help point zone found');
+                return;
+            }
+            
+            const att = attendees.find(a => a.zone_id === restroom.id) || attendees[0];
+            if (!att) {
+                log('error', 'No attendees available');
+                return;
+            }
+            
+            log('warn', `🏥 Help point alert from ${restroom.name}...`);
+            
+            try {
+                const alert = await fetchJSON(`${API}/alerts`, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        session_token: att.token,
+                        event_id: eventId,
+                        zone_id: restroom.id,
+                        alert_type: 'help_point',
+                    })
+                });
+                log('success', `✅ Help point alert created`);
+            } catch (err) {
+                log('error', `Failed: ${err.message}`);
+            }
+            
+            await refreshStats();
+        }
+
+        async function resetZoneCounts() {
+            log('info', 'Resetting zone counts...');
+            // This would need a backend endpoint, for now just log
+            log('info', 'Zone count reset not implemented in API — restart backend to reset');
+        }
+
+        async function runAutoDemo() {
+            demoRunning = true;
+            const progress = document.getElementById('demoProgress');
+            const fill = document.getElementById('demoFill');
+            const step = document.getElementById('demoStep');
+            progress.style.display = 'block';
+            
+            const steps = [
+                { msg: 'Spawning 300 attendees...', pct: 10, fn: () => { document.getElementById('spawnCount').value = 300; return spawnAttendees(); } },
+                { msg: 'Waiting 3s...', pct: 20, fn: () => new Promise(r => setTimeout(r, 3000)) },
+                { msg: 'Shuffling zones (15s)...', pct: 40, fn: async () => {
+                    const start = Date.now();
+                    while (Date.now() - start < 15000) {
+                        const movers = attendees.sort(() => Math.random() - 0.5).slice(0, 30);
+                        await Promise.allSettled(movers.map(att => {
+                            const z = zones[Math.floor(Math.random() * zones.length)];
+                            return fetchJSON(`${API}/attendees/${att.id}/zone`, {
+                                method: 'POST', body: JSON.stringify({ zone_id: z.id })
+                            }).then(() => { att.zone_id = z.id; att.zone_name = z.name; }).catch(()=>{});
+                        }));
+                        await new Promise(r => setTimeout(r, 2000));
+                    }
+                }},
+                { msg: 'Triggering crowd surge at Main Stage...', pct: 60, fn: async () => {
+                    const mainStage = zones.find(z => z.name.includes('Main Stage'));
+                    if (mainStage) {
+                        document.getElementById('surgeZone').value = mainStage.id;
+                        await triggerSurge();
+                    }
+                }},
+                { msg: 'Waiting 3s...', pct: 70, fn: () => new Promise(r => setTimeout(r, 3000)) },
+                { msg: 'Firing test SOS from Food Court...', pct: 85, fn: async () => {
+                    const foodCourt = zones.find(z => z.name.includes('Food'));
+                    if (foodCourt) {
+                        document.getElementById('sosZone').value = foodCourt.id;
+                        await triggerSOS();
+                    }
+                }},
+                { msg: 'Refreshing stats...', pct: 95, fn: () => refreshStats() },
+                { msg: '✅ Demo complete!', pct: 100, fn: () => {} },
+            ];
+            
+            for (const s of steps) {
+                if (!demoRunning) break;
+                step.textContent = s.msg;
+                fill.style.width = s.pct + '%';
+                log('info', `🎬 ${s.msg}`);
+                await s.fn();
+            }
+            
+            demoRunning = false;
+            setTimeout(() => { progress.style.display = 'none'; }, 3000);
+        }
+
+        function stopAutoDemo() {
+            demoRunning = false;
+            log('info', 'Demo stopped');
+        }
+
+        // Boot
+        init();
+    </script>
+</body>
+</html>

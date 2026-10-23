@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" width="800" height="600">
+  <defs>
+    <style>
+      .zone-label { font-family: system-ui, sans-serif; font-size: 14px; font-weight: 600; fill: #1E293B; text-anchor: middle; }
+      .zone-sublabel { font-family: system-ui, sans-serif; font-size: 10px; fill: #64748B; text-anchor: middle; }
+    </style>
+  </defs>
+  <!-- Background -->
+  <rect width="800" height="600" fill="#F1F5F9" rx="8"/>
+  <!-- Outer walls -->
+  <rect x="20" y="20" width="760" height="560" fill="none" stroke="#94A3B8" stroke-width="3" rx="4"/>
+  
+  <!-- Main Stage -->
+  <rect x="40" y="40" width="300" height="200" fill="#E2E8F0" stroke="#64748B" stroke-width="2" rx="4"/>
+  <text x="190" y="130" class="zone-label">Main Stage</text>
+  <text x="190" y="148" class="zone-sublabel">Cap: 500</text>
+  
+  <!-- Food Court -->
+  <rect x="360" y="40" width="200" height="200" fill="#E2E8F0" stroke="#64748B" stroke-width="2" rx="4"/>
+  <text x="460" y="130" class="zone-label">Food Court</text>
+  <text x="460" y="148" class="zone-sublabel">Cap: 200</text>
+  
+  <!-- VIP Lounge -->
+  <rect x="580" y="40" width="180" height="200" fill="#E2E8F0" stroke="#64748B" stroke-width="2" rx="4"/>
+  <text x="670" y="130" class="zone-label">VIP Lounge</text>
+  <text x="670" y="148" class="zone-sublabel">Cap: 50</text>
+  
+  <!-- Entrance / Gate -->
+  <rect x="40" y="260" width="200" height="150" fill="#E2E8F0" stroke="#64748B" stroke-width="2" rx="4"/>
+  <text x="140" y="330" class="zone-label">Entrance Gate</text>
+  <text x="140" y="348" class="zone-sublabel">Cap: 300</text>
+  
+  <!-- Workshop Area -->
+  <rect x="260" y="260" width="250" height="150" fill="#E2E8F0" stroke="#64748B" stroke-width="2" rx="4"/>
+  <text x="385" y="330" class="zone-label">Workshop Area</text>
+  <text x="385" y="348" class="zone-sublabel">Cap: 150</text>
+  
+  <!-- Parking -->
+  <rect x="530" y="260" width="230" height="150" fill="#E2E8F0" stroke="#64748B" stroke-width="2" rx="4"/>
+  <text x="645" y="330" class="zone-label">Parking</text>
+  <text x="645" y="348" class="zone-sublabel">Cap: 100</text>
+  
+  <!-- Restrooms / Help Point -->
+  <rect x="40" y="430" width="180" height="130" fill="#DBEAFE" stroke="#3B82F6" stroke-width="2" rx="4"/>
+  <text x="130" y="490" class="zone-label">Restrooms</text>
+  <text x="130" y="508" class="zone-sublabel">Help Point</text>
+  
+  <!-- Emergency Exit 1 -->
+  <rect x="240" y="430" width="120" height="130" fill="#FEE2E2" stroke="#EF4444" stroke-width="2" rx="4"/>
+  <text x="300" y="490" class="zone-label">Exit 1</text>
+  <text x="300" y="508" class="zone-sublabel">Emergency</text>
+  
+  <!-- Medical Station -->
+  <rect x="380" y="430" width="180" height="130" fill="#DCFCE7" stroke="#22C55E" stroke-width="2" rx="4"/>
+  <text x="470" y="490" class="zone-label">Medical</text>
+  <text x="470" y="508" class="zone-sublabel">Station</text>
+  
+  <!-- Emergency Exit 2 -->
+  <rect x="580" y="430" width="180" height="130" fill="#FEE2E2" stroke="#EF4444" stroke-width="2" rx="4"/>
+  <text x="670" y="490" class="zone-label">Exit 2</text>
+  <text x="670" y="508" class="zone-sublabel">Emergency</text>
+
+  <!-- Title -->
+  <text x="400" y="590" font-family="system-ui, sans-serif" font-size="12" fill="#94A3B8" text-anchor="middle">SafeZone Venue Layout</text>
+</svg>
